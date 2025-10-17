@@ -205,3 +205,61 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+
+# Jupyter
+.ipynb_checkpoints
+*/.ipynb_checkpoints/*
+
+# Data files (ne pas versionner les gros fichiers)
+data/raw/*.csv
+data/raw/*.parquet
+data/raw/*.xlsx
+data/processed/*.csv
+data/processed/*.parquet
+
+# Mais garder les README et petits exemples
+!data/raw/README.md
+!data/processed/README.md
+
+# API keys et secrets
+.env
+config.ini
+secrets.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Outputs
+*.png
+*.jpg
+*.pdf
+outputs/
+results/
+
+# Mais garder certains outputs pour le rapport
+!docs/figures/*.png
+!notebooks/figures/*.png
+
+# Models (si vous sauvegardez des modèles ML)
+*.pkl
+*.joblib
+*.h5
+models/*.pkl
