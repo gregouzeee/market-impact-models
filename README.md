@@ -1,8 +1,8 @@
 # Market Impact Models - Almgren-Chriss & Slippage
 
-**Auteurs** : [Vos noms]  
-**Formation** : ENSAE Paris - Python pour la Data Science (2024-2025)  
-**Encadrant** : [Nom du chargé de TD]
+**Auteurs** : Grégoire Marguier - Pierre Robin-Schnepf                                    
+**Formation** : ENSAE Paris - Python pour la Data Science (2025-2026)  
+**Encadrant** : Mr Couralet
 
 ## 📌 Problématique
 
@@ -82,15 +82,11 @@ market-impact-models/
 ## 📅 Avancement
 
 - [x] Initialisation du projet
-- [ ] Validation du sujet avec le chargé de TD
+- [x] Validation du sujet avec le chargé de TD
 - [ ] Collecte des données
 - [ ] Analyse exploratoire
 - [ ] Modélisation
 - [ ] Rapport final
-
-## 📝 License
-
-MIT License
 
 ---
 
