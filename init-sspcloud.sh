@@ -15,7 +15,7 @@ if [ -d "market-impact-models" ]; then
     git pull origin main
 else
     echo "📥 Clonage du repository..."
-    git clone https://github.com/[VOTRE-USERNAME]/market-impact-models.git
+    git clone https://github.com/gregouzeee/market-impact-models.git
     cd market-impact-models
 fi
 
