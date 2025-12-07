@@ -30,6 +30,30 @@ Si tu passes des ordres réels sur Binance, enregistrer :
 - Prix d'exécution moyen
 - Slippage observé
 
+## ☁️ Stockage des Données (S3)
+
+### Sur SSP Cloud (Automatique)
+Quand tu lances les scripts sur SSP Cloud, ils détectent automatiquement l'environnement et:
+- **Sauvegardent** les données collectées sur S3 (en plus du stockage local)
+- **Chargent** les paramètres calibrés depuis S3 si disponibles
+- Tout est transparent, aucune configuration nécessaire
+
+Structure S3:
+```
+s3://ton-bucket/market-impact-data/
+├── orderbook/
+│   └── BTCUSDT_orderbook_YYYYMMDD_HHMMSS.json
+└── results/
+    └── calibrated_parameters.json
+```
+
+### En Local (Fichiers uniquement)
+En local, les scripts utilisent uniquement le système de fichiers local:
+- `data/orderbook/` : snapshots d'order book
+- `results/` : paramètres calibrés
+
+Pas de configuration S3 nécessaire.
+
 ## 🚀 Workflow Complet
 
 ### Étape 1: Collecter les données d'order book
@@ -41,6 +65,9 @@ source venv/bin/activate
 # Collecter 1 heure de données toutes les 10 secondes
 python scripts/collect_orderbook.py
 ```
+
+**Sur SSP Cloud:** Les données sont automatiquement sauvegardées sur S3 + localement
+**En local:** Les données sont sauvegardées uniquement dans `data/orderbook/`
 
 **Paramètres à ajuster dans le script:**
 - `duration_minutes=60` : Durée de collecte (60 min = 1h)
@@ -73,24 +100,30 @@ Le script va :
 Une fois les paramètres calibrés, les utiliser dans tes notebooks :
 
 ```python
-import json
+import sys
+from pathlib import Path
+sys.path.append(str(Path.cwd().parent / 'scripts'))
+from s3_utils import load_calibrated_parameters
 
-# Charger les paramètres calibrés
-with open('results/calibrated_parameters.json', 'r') as f:
-    params = json.load(f)
+# Charger les paramètres (automatiquement depuis S3 si sur SSP Cloud, sinon local)
+params = load_calibrated_parameters()
 
-# Utiliser dans le modèle
-k_calibrated = params['k']
-eta_calibrated = params['eta']
-phi_calibrated = params['phi']
-psi_calibrated = params['psi']
+if params:
+    k_calibrated = params['k']
+    eta_calibrated = params['eta']
+    phi_calibrated = params['phi']
+    psi_calibrated = params['psi']
 
-print(f"Paramètres calibrés:")
-print(f"  k   = {k_calibrated:.8f}")
-print(f"  η   = {eta_calibrated:.6f}")
-print(f"  φ   = {phi_calibrated:.4f}")
-print(f"  ψ   = {psi_calibrated:.6f}")
+    print(f"Paramètres calibrés:")
+    print(f"  k   = {k_calibrated:.8f}")
+    print(f"  η   = {eta_calibrated:.6f}")
+    print(f"  φ   = {phi_calibrated:.4f}")
+    print(f"  ψ   = {psi_calibrated:.6f}")
 ```
+
+**Note:** La fonction `load_calibrated_parameters()` gère automatiquement:
+- Sur SSP Cloud: télécharge depuis S3 si disponible
+- En local: lit le fichier `results/calibrated_parameters.json`
 
 ## 📈 Interprétation des Résultats
 

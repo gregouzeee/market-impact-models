@@ -349,21 +349,47 @@ class MarketImpactCalibrator:
 def main():
     """Main calibration workflow."""
     import os
+    from pathlib import Path
+    import sys
+    sys.path.append(str(Path(__file__).parent))
+    from s3_utils import is_ssp_cloud, get_s3_manager
 
-    # Check if order book data exists
-    orderbook_dir = 'data/orderbook'
-    if not os.path.exists(orderbook_dir):
-        print(f"❌ No order book data found in {orderbook_dir}")
-        print(f"   Run 'python scripts/collect_orderbook.py' first to collect data")
-        return
+    # On SSP Cloud: try to download from S3 first
+    if is_ssp_cloud():
+        print("☁️  Running on SSP Cloud - checking for data in S3...")
+        s3 = get_s3_manager()
+        if s3:
+            try:
+                # List orderbook files in S3
+                files = s3.list_files(prefix='market-impact-data/orderbook/')
+                if files:
+                    # Download most recent file
+                    latest_file = sorted(files)[-1]
+                    local_path = f"data/orderbook/{Path(latest_file).name}"
+                    s3.download_file(latest_file, local_path)
+                    orderbook_file = local_path
+                else:
+                    print("⚠️  No orderbook data found in S3")
+                    return
+            except Exception as e:
+                print(f"⚠️  Failed to download from S3: {e}")
+                return
+    else:
+        # Local mode: check local filesystem
+        orderbook_dir = 'data/orderbook'
+        if not os.path.exists(orderbook_dir):
+            print(f"❌ No order book data found in {orderbook_dir}")
+            print(f"   Run 'python scripts/collect_orderbook.py' first to collect data")
+            return
 
-    # Find most recent order book file
-    files = [f for f in os.listdir(orderbook_dir) if f.endswith('.json')]
-    if not files:
-        print(f"❌ No JSON files found in {orderbook_dir}")
-        return
+        # Find most recent order book file
+        files = [f for f in os.listdir(orderbook_dir) if f.endswith('.json')]
+        if not files:
+            print(f"❌ No JSON files found in {orderbook_dir}")
+            return
 
-    orderbook_file = os.path.join(orderbook_dir, sorted(files)[-1])
+        orderbook_file = os.path.join(orderbook_dir, sorted(files)[-1])
+
     print(f"📂 Using order book data: {orderbook_file}")
 
     # Load daily volume from historical data
@@ -405,10 +431,22 @@ def main():
         }
 
         os.makedirs('results', exist_ok=True)
-        with open('results/calibrated_parameters.json', 'w') as f:
+        results_file = 'results/calibrated_parameters.json'
+        with open(results_file, 'w') as f:
             json.dump(results, f, indent=2, default=float)
 
-        print(f"\n💾 Calibrated parameters saved to 'results/calibrated_parameters.json'")
+        print(f"\n💾 Calibrated parameters saved locally: {results_file}")
+
+        # If on SSP Cloud, also upload to S3
+        if is_ssp_cloud():
+            print(f"☁️  Uploading results to S3...")
+            s3 = get_s3_manager()
+            if s3:
+                s3_key = "market-impact-data/results/calibrated_parameters.json"
+                try:
+                    s3.upload_file(results_file, s3_key)
+                except Exception as e:
+                    print(f"⚠️  S3 upload failed (continuing): {e}")
 
         print("\n" + "="*70)
         print("SUMMARY - Calibrated Parameters:")

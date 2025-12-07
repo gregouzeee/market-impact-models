@@ -94,16 +94,39 @@ class BinanceOrderBookCollector:
         return snapshots
 
     def save_snapshots(self, snapshots, output_dir='data/orderbook'):
-        """Save snapshots to JSON file."""
+        """
+        Save snapshots to JSON file.
+
+        - On SSP Cloud: saves locally AND uploads to S3
+        - Locally: saves to local directory only
+        """
+        from pathlib import Path
+        import sys
+        sys.path.append(str(Path(__file__).parent))
+        from s3_utils import is_ssp_cloud, get_s3_manager
+
         os.makedirs(output_dir, exist_ok=True)
 
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         filename = f'{output_dir}/{self.symbol}_orderbook_{timestamp}.json'
 
+        # Save locally first
         with open(filename, 'w') as f:
             json.dump(snapshots, f, indent=2)
 
-        print(f"💾 Saved to: {filename}")
+        print(f"💾 Saved locally: {filename}")
+
+        # If on SSP Cloud, also upload to S3
+        if is_ssp_cloud():
+            print(f"☁️  Running on SSP Cloud - uploading to S3...")
+            s3 = get_s3_manager()
+            if s3:
+                s3_key = f"market-impact-data/orderbook/{self.symbol}_orderbook_{timestamp}.json"
+                try:
+                    s3.upload_file(filename, s3_key)
+                except Exception as e:
+                    print(f"⚠️  S3 upload failed (continuing): {e}")
+
         return filename
 
 
