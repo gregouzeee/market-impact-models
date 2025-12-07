@@ -1,4 +1,0 @@
-symbol,initial_rows,missing_values,inconsistent_ohlc,zero_volume,time_gaps,final_rows,rows_removed,removal_rate
-BTCUSDT,43201,0,0,0,0,43201,0,0.0
-ETHUSDT,43201,0,0,0,0,43201,0,0.0
-SOLUSDT,43201,0,0,0,0,43201,0,0.0

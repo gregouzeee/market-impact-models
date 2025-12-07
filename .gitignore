@@ -227,6 +227,12 @@ data/raw/*.parquet
 data/raw/*.xlsx
 data/processed/*.csv
 data/processed/*.parquet
+data/orderbook/*.json
+data/orderbook/*.csv
+notebooks/data/processed/**/*.parquet
+notebooks/data/processed/**/*.csv
+notebooks/data/raw/**/*.parquet
+notebooks/data/raw/**/*.csv
 
 # Mais garder les README et petits exemples
 !data/raw/README.md

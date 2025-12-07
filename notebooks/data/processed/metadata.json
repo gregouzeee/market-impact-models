@@ -1,49 +1,12 @@
 {
-  "collection_date": "2025-12-05T13:42:14.278692",
-  "symbols": [
+  "collection_date": "2025-12-06T16:39:16.064172",
+  "stock_tickers": [],
+  "crypto_symbols": [
     "BTCUSDT",
     "ETHUSDT",
     "SOLUSDT"
   ],
   "interval": "1m",
-  "start_date": "2025-11-01",
-  "end_date": "2025-12-01",
-  "total_symbols": 3,
-  "parameters_computed": [
-    "symbol",
-    "interval",
-    "vol_interval",
-    "vol_daily",
-    "vol_annual",
-    "volume_per_day",
-    "volume_std",
-    "volume_min",
-    "volume_max",
-    "S0_median",
-    "S0_recent",
-    "S0_mean",
-    "spread_pct_mean",
-    "spread_pct_median",
-    "spread_bps_mean",
-    "avg_volume_per_trade",
-    "num_trading_days",
-    "num_intervals"
-  ],
-  "data_quality": {
-    "BTCUSDT": {
-      "rows": 43201,
-      "start": "2025-11-01T00:00:00",
-      "end": "2025-12-01T00:00:00"
-    },
-    "ETHUSDT": {
-      "rows": 43201,
-      "start": "2025-11-01T00:00:00",
-      "end": "2025-12-01T00:00:00"
-    },
-    "SOLUSDT": {
-      "rows": 43201,
-      "start": "2025-11-01T00:00:00",
-      "end": "2025-12-01T00:00:00"
-    }
-  }
+  "total_assets": 3,
+  "s3_enabled": false
 }
