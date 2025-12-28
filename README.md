@@ -1,93 +1,185 @@
-# Market Impact Models - Almgren-Chriss & Slippage
+# Market Impact Models - Almgren-Chriss
 
-**Auteurs** : Grégoire Marguier - Pierre Robin-Schnepf                                    
-**Formation** : ENSAE Paris - Python pour la Data Science (2025-2026)  
+**Auteurs** : Gregoire Marguier - Pierre Robin-Schnepf
+**Formation** : ENSAE Paris - Python pour la Data Science (2024-2025)
 **Encadrant** : Mr Couralet
-
-## 📌 Problématique
-
-Comment modéliser et optimiser les coûts de transaction liés à l'impact de marché pour différentes stratégies d'exécution d'ordres ?
-
-## 🎯 Objectifs
-
-1. Modéliser empiriquement le slippage sur données réelles
-2. Calibrer et implémenter le modèle d'Almgren-Chriss
-3. Comparer différentes stratégies d'exécution (TWAP, VWAP, optimal)
-4. Analyser l'impact de la spécification du modèle sur les coûts
-
-## 📊 Données
-
-- **Source principale** : Yahoo Finance (yfinance)
-- **Actifs** : Actions liquides du S&P 500 (AAPL, MSFT, GOOGL, JPM, etc.)
-- **Période** : 2023-2024 (données intraday + historiques)
-- **Compléments** : Données de spread bid-ask via Alpha Vantage API
-
-## 🛠️ Installation
-
-### Prérequis
-- Python 3.10+
-- Packages listés dans `requirements.txt`
-
-### Setup rapide
-```bash
-git clone https://github.com/[votre-username]/market-impact-models.git
-cd market-impact-models
-pip install -r requirements.txt
-```
-
-### Utilisation sur SSPCloud
-```bash
-# Instructions spécifiques SSPCloud (à compléter)
-```
-
-## 📁 Structure du projet
-```
-market-impact-models/
-├── data/                  # Données (gitignored si > 100MB)
-│   ├── raw/              # Données brutes
-│   ├── processed/        # Données nettoyées
-│   └── README.md         # Description des données
-├── notebooks/            # Notebooks Jupyter
-│   ├── 01_data_collection.ipynb
-│   ├── 02_exploratory_analysis.ipynb
-│   ├── 03_slippage_models.ipynb
-│   └── 04_almgren_chriss.ipynb
-├── src/                  # Code source Python
-│   ├── __init__.py
-│   ├── data_loader.py   # Fonctions de téléchargement
-│   ├── slippage.py      # Modèles de slippage
-│   ├── almgren_chriss.py # Implémentation A-C
-│   └── utils.py         # Fonctions utilitaires
-├── tests/                # Tests unitaires (optionnel)
-├── docs/                 # Documentation
-├── .gitignore
-├── requirements.txt      # Dépendances Python
-├── README.md
-└── environment.yml       # Environnement conda (optionnel)
-```
-
-## 📈 Méthodologie
-
-1. **Collecte & nettoyage** : Récupération via API, gestion valeurs manquantes
-2. **Analyse descriptive** : Statistiques, visualisations interactives (Plotly)
-3. **Modélisation slippage** : Linéaire, racine carrée, ML (Random Forest)
-4. **Almgren-Chriss** : Calibration, optimisation, backtest
-
-## 🔗 Ressources
-
-- [Almgren & Chriss (2000)](https://www.smallake.kr/wp-content/uploads/2016/03/optliq.pdf)
-- [Documentation yfinance](https://pypi.org/project/yfinance/)
-- [Cours Python ENSAE](https://pythonds.linogaliana.fr/)
-
-## 📅 Avancement
-
-- [x] Initialisation du projet
-- [x] Validation du sujet avec le chargé de TD
-- [ ] Collecte des données
-- [ ] Analyse exploratoire
-- [ ] Modélisation
-- [ ] Rapport final
 
 ---
 
-**Note** : Ce projet est réalisé dans le cadre du cours Python pour la Data Science à l'ENSAE Paris.
+## Problematique
+
+Comment modeliser et optimiser les couts de transaction lies a l'impact de marche lors de l'execution d'ordres importants ?
+
+Ce projet implemente le **modele d'Almgren-Chriss** pour l'execution optimale d'ordres sur Bitcoin (BTCUSDT), avec :
+- Collecte de donnees d'orderbook en temps reel (Binance API)
+- Calibration des parametres du modele
+- Comparaison de strategies d'execution (TWAP, VWAP, Optimal)
+
+---
+
+## Installation
+
+```bash
+# Cloner le projet
+git clone https://github.com/[votre-repo]/market-impact-models.git
+cd market-impact-models
+
+# Creer un environnement virtuel
+python -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
+
+# Installer les dependances
+pip install -r requirements.txt
+```
+
+---
+
+## Execution des notebooks
+
+**Les notebooks doivent etre executes dans l'ordre suivant :**
+
+### Etape 1 : Collecte des donnees historiques
+```
+notebooks/01_data_collection.ipynb
+```
+- Telecharge les donnees OHLCV depuis Binance (1 mois de donnees minute)
+- Calcule les parametres de marche (volatilite, volume)
+- **Sortie** : `data/processed/crypto/*.parquet`, `data/processed/market_parameters.parquet`
+- **Duree** : ~5 minutes
+
+### Etape 2 : Collecte de l'orderbook
+```
+notebooks/02_orderbook_collection.ipynb
+```
+- Collecte des snapshots d'orderbook en temps reel
+- **Sortie** : `data/orderbook/BTCUSDT_orderbook_*.json`
+- **Duree** : ~60 minutes (configurable via `DURATION_MINUTES`)
+
+> **Note** : Vous pouvez reduire `DURATION_MINUTES` a 5-10 pour un test rapide.
+
+### Etape 3 : Calibration des parametres
+```
+notebooks/03_calibration.ipynb
+```
+- Estime les parametres du modele (k, eta, phi, psi) depuis l'orderbook
+- **Sortie** : `data/results/calibrated_parameters.json`
+- **Prerequis** : Notebooks 01 et 02 executes
+
+### Etape 4 : Modele Almgren-Chriss quadratique
+```
+notebooks/04_almgren_chriss_quadratic.ipynb
+```
+- Implemente le modele AC avec couts quadratiques
+- Solution analytique (sinh/cosh)
+- Comparaison TWAP vs Optimal
+- **Prerequis** : Notebook 03 execute
+
+### Etape 5 : Modele Almgren-Chriss power-law
+```
+notebooks/05_almgren_chriss_powerlaw.ipynb
+```
+- Implemente le modele AC avec couts power-law
+- Solution numerique (BVP solver)
+- Comparaison complete des strategies
+- **Prerequis** : Notebook 03 execute
+
+---
+
+## Structure du projet
+
+```
+market-impact-models/
+│
+├── notebooks/                        # Notebooks (workflow principal)
+│   ├── 01_data_collection.ipynb          # Collecte donnees historiques
+│   ├── 02_orderbook_collection.ipynb     # Collecte orderbook temps reel
+│   ├── 03_calibration.ipynb              # Calibration parametres
+│   ├── 04_almgren_chriss_quadratic.ipynb # Modele AC quadratique
+│   └── 05_almgren_chriss_powerlaw.ipynb  # Modele AC power-law
+│
+├── src/                              # Modules Python
+│   ├── models/almgren_chriss.py          # Implementation du modele AC
+│   ├── optimization/strategies.py        # Strategies TWAP, VWAP, Optimal
+│   ├── calibration/calibrator.py         # Calibration des parametres
+│   └── data/collectors.py                # Collecteurs Binance
+│
+├── data/                             # Donnees (generees par les notebooks)
+│   ├── processed/                        # Donnees historiques
+│   ├── orderbook/                        # Snapshots orderbook
+│   └── results/                          # Parametres calibres
+│
+├── tests/                            # Tests unitaires
+├── config/                           # Configuration
+└── docs/                             # Documentation
+```
+
+---
+
+## Theorie : Modele d'Almgren-Chriss
+
+### Objectif
+Minimiser le cout d'execution d'un ordre de taille X sur un horizon T :
+
+```
+min  E[Cout] + lambda * Var[Cout]
+```
+
+### Composantes du cout
+
+| Composante | Formule | Description |
+|------------|---------|-------------|
+| Impact permanent | `k * rho` | Deplacement definitif du prix |
+| Impact temporaire | `eta * rho^(1+phi)` | Cout d'execution instantane |
+| Spread | `psi * rho` | Cout du bid-ask spread |
+
+Ou `rho = v/V` est le taux de participation.
+
+### Parametres calibres (exemple BTCUSDT)
+
+| Parametre | Description | Valeur typique |
+|-----------|-------------|----------------|
+| k | Impact permanent | ~10^-5 |
+| eta | Coefficient impact temporaire | 0.05 - 0.20 |
+| phi | Exposant power-law | 0.5 |
+| psi | Spread | 0.5 - 5 bps |
+
+---
+
+## Strategies d'execution
+
+| Strategie | Description |
+|-----------|-------------|
+| **TWAP** | Execution uniforme dans le temps |
+| **VWAP** | Proportionnel au volume de marche |
+| **Optimal AC** | Minimise cout + risque (Almgren-Chriss) |
+
+---
+
+## Tests
+
+```bash
+pytest tests/ -v
+# Resultat attendu: 32 tests passed
+```
+
+---
+
+## References
+
+- Almgren & Chriss (2000) - Optimal Execution of Portfolio Transactions
+- Almgren et al. (2005) - Direct Estimation of Equity Market Impact
+- Kyle (1985) - Continuous Auctions and Insider Trading
+
+---
+
+## Notes pour le correcteur
+
+1. **Execution sur SSP Cloud** : Le projet est prevu pour etre execute sur SSP Cloud ou les donnees S3 sont disponibles. En local, les donnees stocks ne seront pas chargees (seules les donnees crypto Binance fonctionnent).
+
+2. **Temps d'execution** : Le notebook 02 (orderbook) prend ~1h. Vous pouvez reduire `DURATION_MINUTES` pour un test rapide.
+
+3. **Donnees pre-existantes** : Si les donnees dans `data/` existent deja, vous pouvez sauter les etapes 1-2 et commencer directement a l'etape 3.
+
+---
+
+**ENSAE Paris - Python pour la Data Science (2024-2025)**
