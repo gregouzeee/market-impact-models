@@ -28,8 +28,8 @@ AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
 S3_BUCKET_NAME = os.getenv("S3_BUCKET_NAME")
 AWS_DEFAULT_REGION = os.getenv("AWS_DEFAULT_REGION", "us-east-1")
 
-# Préfixes S3
-S3_PREFIX = "market-impact-data"
+# Préfixes S3 (les données sont dans le sous-dossier "diffusion" du bucket public)
+S3_PREFIX = "diffusion/market-impact-data"
 S3_ORDERBOOK_PREFIX = f"{S3_PREFIX}/orderbook"
 S3_RESULTS_PREFIX = f"{S3_PREFIX}/results"
 S3_PROCESSED_PREFIX = f"{S3_PREFIX}/processed"
