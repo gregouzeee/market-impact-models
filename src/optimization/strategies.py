@@ -829,6 +829,7 @@ def compute_volume_profile_from_data(
     volume_col: str = "volume",
     n_slices: int = None,
     trading_hours: Tuple[int, int] = (0, 24),
+    timezone: str = None,
 ) -> np.ndarray:
     """Calcule un profil de volume empirique à partir de données historiques.
 
@@ -838,6 +839,8 @@ def compute_volume_profile_from_data(
         volume_col: Nom de la colonne volume
         n_slices: Nombre de tranches (si None, 1 par minute sur les heures de trading)
         trading_hours: Tuple (heure_debut, heure_fin) en heures locales
+        timezone: Timezone pour convertir les timestamps (ex: 'US/Eastern', 'Europe/Paris').
+                  Si None, utilise l'heure du timestamp tel quel.
 
     Returns:
         Profil de volume normalisé
@@ -845,6 +848,8 @@ def compute_volume_profile_from_data(
     Example:
         >>> df = pd.read_parquet('data/processed/crypto/BTCUSDT_1m.parquet')
         >>> profile = compute_volume_profile_from_data(df, n_slices=48)  # 30min slices
+        >>> # Pour les stocks US avec données en UTC:
+        >>> profile = compute_volume_profile_from_data(df, n_slices=13, timezone='US/Eastern')
         >>> vwap = VWAP(exec_params, impact_params, volume_profile=profile)
     """
     import pandas as pd
@@ -855,6 +860,18 @@ def compute_volume_profile_from_data(
     if not pd.api.types.is_datetime64_any_dtype(df[time_col]):
         df[time_col] = pd.to_datetime(df[time_col])
 
+    # Convertir vers la timezone spécifiée si nécessaire
+    if timezone is not None:
+        import pytz
+        target_tz = pytz.timezone(timezone)
+
+        # Si le timestamp a déjà une timezone, convertir
+        if df[time_col].dt.tz is not None:
+            df[time_col] = df[time_col].dt.tz_convert(target_tz)
+        else:
+            # Sinon, supposer UTC et convertir
+            df[time_col] = df[time_col].dt.tz_localize('UTC').dt.tz_convert(target_tz)
+
     # Extraire l'heure du jour
     df["hour"] = df[time_col].dt.hour
     df["minute"] = df[time_col].dt.minute
@@ -863,7 +880,7 @@ def compute_volume_profile_from_data(
     # Filtrer les heures de trading
     start_hour, end_hour = trading_hours
     if start_hour < end_hour:
-        df = df[(df["hour"] >= start_hour) & (df["hour"] < end_hour)]
+        df = df[(df["time_of_day"] >= start_hour) & (df["time_of_day"] < end_hour)]
     else:  # Pour crypto 24h, pas de filtre
         pass
 
@@ -907,7 +924,6 @@ def compute_volume_profile_from_data(
         profile = np.ones(n_slices)
 
     return profile / profile.sum()
-
 
 def plot_volume_profile(
     profile: np.ndarray,
